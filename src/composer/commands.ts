@@ -1,9 +1,9 @@
 import { Composer } from "../deps.ts";
-import onStarGp from "../handlers/ch_start.ts";
+import onSendCard from "../handlers/ch_send_card.ts";
 import MyContext from "../helpers/context.ts";
 
 const composer = new Composer<MyContext>();
 
-composer.command("start", onStarGp);
+composer.command("start", onSendCard);
 
 export default composer;
