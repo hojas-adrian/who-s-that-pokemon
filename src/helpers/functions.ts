@@ -1,6 +1,7 @@
-import { Context, InlineKeyboard } from "../deps.ts";
+import { InlineKeyboard } from "../deps.ts";
 import { IMGIX_URL, IMGIX_URL_1 } from "./constants.ts";
 import joinGroupKeyboard from "../keyboards/join_group.ts";
+import MyContext from "./context.ts";
 
 export const getServer = (id: number) => {
   return id <= 900 ? IMGIX_URL : IMGIX_URL_1;
@@ -46,7 +47,7 @@ export const getPkmblackImg = (id: number) => {
 };
 
 const sendPhoto = async (
-  ctx: Context,
+  ctx: MyContext,
   img: string,
   caption?: string,
   options?: {
@@ -67,7 +68,7 @@ const sendPhoto = async (
 };
 
 export const sendPkmCard = async (
-  ctx: Context,
+  ctx: MyContext,
   img: string,
   options = {
     inPv: false,
@@ -80,4 +81,17 @@ export const sendPkmCard = async (
     reply_message_id: ctx.message?.message_id,
     inlineKeyboard: options.inPv ? keyboard : undefined,
   });
+};
+
+export const setPkm = (
+  ctx: MyContext,
+  data: {
+    id: number;
+    name: string;
+  }
+) => {
+  ctx.session = {
+    pkmId: data.id,
+    pkmName: data.name,
+  };
 };
