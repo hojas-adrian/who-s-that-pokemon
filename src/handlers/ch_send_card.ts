@@ -8,11 +8,13 @@ import {
 
 export default async (ctx: MyContext) => {
   const id = ctx.session?.pkmId || Math.ceil(Math.random() * (900 - 1));
-  const inPv = ctx.chat?.type === "private" ? true : false;
 
   if (ctx.session) {
     const img = getPkmCard(getPkmblackImg(id));
-    return await sendPkmCard(ctx, img, { inPv });
+    return await sendPkmCard(ctx, img, {
+      caption: "ask",
+      show_caption_above_media: true,
+    });
   }
 
   try {
@@ -25,7 +27,10 @@ export default async (ctx: MyContext) => {
     const data = await response.json();
 
     const img = getPkmCard(getPkmblackImg(id));
-    await sendPkmCard(ctx, img, { inPv });
+    await sendPkmCard(ctx, img, {
+      caption: "ask",
+      show_caption_above_media: true,
+    });
 
     setPkm(ctx, {
       id,
