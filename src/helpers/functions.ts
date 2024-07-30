@@ -7,6 +7,10 @@ export const getServer = (id: number) => {
   return id <= 900 ? IMGIX_URL : IMGIX_URL_1;
 };
 
+export const getRandomNumber = (number: number) => {
+  return Math.ceil(Math.random() * (number - 1) + 1);
+};
+
 export const getPkmImge = (id: number) => {
   const baseUrl = getServer(id);
   return `${baseUrl}${id}.png`;
@@ -71,16 +75,13 @@ export const sendPkmCard = async (
   ctx: MyContext,
   img: string,
   options?: {
-    caption?: "ask" | "answer" | "error";
     show_caption_above_media?: boolean;
     isReply?: boolean;
   }
 ) => {
   const keyboard = await joinGroupKeyboard(ctx);
 
-  const caption = getCaption(ctx, options?.caption);
-
-  return sendPhoto(ctx, img, caption, {
+  return sendPhoto(ctx, img, "<b>Who's that Pokemon?</b>", {
     show_caption_above_media: options?.show_caption_above_media,
     reply_message_id: options?.isReply ? ctx.message?.message_id : 0,
     inlineKeyboard: ctx.chat?.type === "private" ? keyboard : undefined,
@@ -92,11 +93,13 @@ export const setPkm = (
   data: {
     id: number;
     name: string;
+    messageId: number;
   }
 ) => {
   ctx.session = {
     pkmId: data.id,
     pkmName: data.name.replaceAll("-", " "),
+    messageId: data.messageId,
   };
 };
 
@@ -135,18 +138,51 @@ export const levenshteinSimilarity = (str1: string, str2: string) => {
   return (1 - matrix[m][n] / Math.max(m, n)) * 100;
 };
 
-const getCaption = (ctx: MyContext, string?: string) => {
-  switch (string) {
-    case "ask":
-      return "<b>Who's that Pokemon?</b>";
-    case "answer":
-      return `${name(ctx.from as User)} got <b>${ctx.session?.pkmName}</b>`;
-    case "valor3":
-      return "Cadena para valor3";
-    default:
-      return "";
-  }
-};
+// const getCaption = (ctx: MyContext, string?: string) => {
+//   switch (string) {
+//     case "ask":
+//       return "<b>Who's that Pokemon?</b>";
+//     case "answer":
+//       return `${name(ctx.from as User)} got <b>${ctx.session?.pkmName}</b>`;
+//     case "valor3":
+//       return "Cadena para valor3";
+//     default:
+//       return "";
+//   }
+// };
 
 export const name = (user: User) =>
   user.username ? `@${user.username}` : user.first_name || "";
+
+export const replyMessage = async (
+  ctx: MyContext,
+  text: string,
+  options?: {
+    replyTo: number;
+  }
+) => {
+  return await ctx.reply(text, {
+    parse_mode: "HTML",
+    reply_parameters: { message_id: options?.replyTo || 0 },
+  });
+};
+
+export const replyMessageToUser = async (ctx: MyContext, text: string) => {
+  await replyMessage(ctx, text, { replyTo: ctx.message?.message_id as number });
+};
+
+export const replyHint = async (ctx: MyContext) => {
+  await replyMessage(ctx, `<b>Who's that Pokemon:</b>\n${ctx.session?.hint}`, {
+    replyTo: ctx.session?.messageId as number,
+  });
+};
+
+export const getChartIndex = (hint: string): number => {
+  const index = getRandomNumber(hint.length) - 1;
+
+  if (hint[index] === " " || hint[index] !== "₋") {
+    return getChartIndex(hint);
+  }
+
+  return index;
+};
